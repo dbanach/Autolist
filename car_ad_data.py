@@ -1,5 +1,3 @@
-import requests
-import io
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import re
@@ -9,15 +7,13 @@ def get_data(link):
     """
     Downloads html data from website
     :param link: url link
-    :return: html data from url
+    :return: html data from url as a Beautiful Soup
     """
     browser = webdriver.Chrome()
     browser.get(link)
+
     html = browser.page_source
     soup = BeautifulSoup(html, 'lxml')
-
-    with io.open("test_selenium.html", 'w', encoding="utf-8") as file:
-        file.write(str(soup))
 
     browser.close()
 
@@ -27,7 +23,7 @@ def get_data(link):
 def get_car_info(soup):
     """
     Gets information from autolist car ad
-    :param soup: html data
+    :param soup: Beautiful Soup html data
     :return: None
     """
 
@@ -35,7 +31,7 @@ def get_car_info(soup):
     car_info = {}
     # get the make from the android app url
     # from other parts of the html, it is hard to tell the length of the car make, ex: Ford x Alfa Romeo
-    # from the android app url there is a clear separation
+    # using the android app url there is a clear separation
     make_soup = soup.find('link', href=re.compile(r"^android-app://com.autolist.autolist/autolist/search"))
     make = re.search(r'make=*(\w.*).*&', str(make_soup)).group(1).replace('+', ' ')
     car_info['Make'] = make
