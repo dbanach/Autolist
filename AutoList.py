@@ -1,18 +1,10 @@
-from selenium import webdriver
 import re
+from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 import car_ad_data
 
 URL = 'https://www.autolist.com/listings#page=1&latitude=40.7127753&location=New+York%2C+NY&longitude=-74.0059728&body_style%5B%5D=convertible'
 
-
-# def get_all_links(driver):
-#   links = []
-#  elements = driver.find_elements_by_tag_name('a')
-# for elem in elements:
-#    href = elem.get_attribute("href")
-#   links.append(href)
-# return links
 
 def get_all_car_links_in_page(driver):
     """
@@ -22,36 +14,38 @@ def get_all_car_links_in_page(driver):
     return driver.find_elements_by_class_name(name='vehicle-item-view')
 
 
-def loops_through_adds(driver):
+def loops_through_ads(driver):
     """
-    function that receives a driver and loops through a list of webpages
+    function that receives a driver and loops through a list of webpages containing car ads
     :param driver: selenium web driver
     :return: None
     """
+    # wait for page to fully load
     driver.implicitly_wait(5)
-    for one_add in get_all_car_links_in_page(driver):
-        this_add = one_add.find_element_by_tag_name(name='a')
-        href = this_add.get_attribute("href")
+
+    # loop through ads and use functions from car_ad_data.py to get car info from ads
+    for one_ad in get_all_car_links_in_page(driver):
+        this_ad = one_ad.find_element_by_tag_name(name='a')
+        href = this_ad.get_attribute("href")
         soup = car_ad_data.get_data(href)
         car_ad_data.get_car_info(soup)
     print('one loop')
 
 
-# Here goes code of Ilan taking the info
-# might need to adapt and receive something that saves the info
-
-
-def next_page(driver, page):
+def next_page(driver, page_increase):
     """
-    function that checks if there is a next page.
-    if there is it clicks on it and returns true, if not does returns false
-
+    function that loads the next ad listing page and checks if there is content
+    :param driver: selenium web driver
+    :param page_increase: int, pages to add to URL
+    :return: True if page exists, False if it doesn't
     """
-    new_page = int(re.search(r'page=(\w*)', URL).group(1)) + page
+    # generate new url
+    new_page = int(re.search(r'page=(\w*)', URL).group(1)) + page_increase
     new_URL = re.sub(r'page=(\w*)', 'page=' + str(new_page), URL)
 
     driver.get(new_URL)
 
+    # check if page has content
     try:
         no_results = driver.find_element_by_xpath("//h3[text()='No Results Found']")
     except NoSuchElementException:
@@ -69,7 +63,7 @@ def main():
     loops = 1
     while True:
 
-        loops_through_adds(driver)
+        loops_through_ads(driver)
 
         val = next_page(driver, loops)
 
