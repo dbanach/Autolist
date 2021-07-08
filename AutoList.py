@@ -1,6 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-
+import car_ad_data
 URL = 'https://www.autolist.com/listings#page=1&latitude=32.0668&location=Tel+Aviv%2C+TA&longitude=34.7649&radius=any'
 
 
@@ -28,8 +28,12 @@ def loops_through_adds(driver):
     """
 
     for one_add in get_all_car_links_in_page(driver):
+        this_add = one_add.find_element_by_tag_name(name='a')
+        href = this_add.get_attribute("href")
+        soup = car_ad_data.get_data(href)
+        car_ad_data.get_car_info(soup)
 
-        pass
+
 
     print('one loop')
 
@@ -62,14 +66,19 @@ def main():
     driver = webdriver.Chrome()
     driver.get(URL)
 
+    int1 = 1
     while True:
         loops_through_adds(driver)
 
         val = next_page(driver)
 
+        int1+= 1
+
         if not val:
             break
 
+        if int1 ==5:
+            break
 
 if __name__ == '__main__':
     main()
