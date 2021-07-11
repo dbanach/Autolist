@@ -11,6 +11,8 @@ class Autolist_DBM:
         newDatabaseName = "Autolist"
         sql_code = "CREATE DATABASE IF NOT EXISTS " + newDatabaseName
         self.sql_command(sql_code)
+        self.create_table_seller()
+        self.create_table_cars()
 
     def sql_command(self, sql_code):
         cursor, connection = self.connect_to_database()
@@ -66,10 +68,10 @@ class Autolist_DBM:
         """
         self.sql_command(sql_code)
 
-    def insert_car_row(self, my_car, seller_name):
+    def insert_car_row(self, my_car, seller):
         # might be a seller with two identical cars with this features????
 
-        sold_by = seller_name
+        sold_by = seller.getname()
         sale_price, make, year_of_assembly, model, color, transmission, engine, fuel_type, \
         condition, mileage, mile_per_liter, body_style = my_car.getall()
 
