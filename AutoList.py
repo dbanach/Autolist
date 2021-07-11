@@ -3,6 +3,10 @@ from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from bs4 import BeautifulSoup
 import argparse
+from Car_and_Seller import Car, Seller
+import Autolist_DBM
+
+
 def start_parser():
     """
     Starts parser to get inputs from user
@@ -36,6 +40,8 @@ def start_parser():
     if args.year_min != 'any' and args.year_max != 'any' and args.year_min > args.year_max:
         parser.error('max year must be higher or equal to min year.')
     return args
+
+
 def get_param():
     """
     Constructs the autolist.com URL based on user input
@@ -52,6 +58,8 @@ def get_param():
     url = f'https://www.autolist.com/listings#{min_price}{max_price}{min_year}{max_year}{body}{category}' \
           f'location=New%20York,%20NY&latitude=40.7123&longitude=-74.0068&radius={radius}&page=1'
     return url, args.page_max, args.ads_max
+
+
 def get_data(driver):
     """
     Downloads html data from website
@@ -69,37 +77,52 @@ def get_data(driver):
         if soup.find(_class='jsx-2369677278 title') is not None:
             soup_check = True
     return soup
+
+
 def get_car_info(soup):
     """
     Gets information from autolist car ad
     :param soup: Beautiful Soup html data
     :return: None
     """
-    get_basic_info(soup)
+    sales_price, make, model, year = get_basic_info(soup)
+
     get_buyer_intelligence(soup)
-    get_general_info(soup)
-    get_key_features(soup)
-    get_seller_info(soup)
+    transmission, engine, fuel_type, color, condition, mileage, mile_per_liter, body_style = get_general_info(soup)
+    #get_key_features(soup)
+    name, phone, address = get_seller_info(soup)
+
+    Auto_DBM = Autolist_DBM()
+    my_car = Car(sales_price, year, make, model, transmission, engine, fuel_type, color, condition, mileage,
+                 mile_per_liter, body_style)
+    my_seller = Seller(name, phone, address)
+    Auto_DBM.insert_car_row(my_car, my_seller)
+    Auto_DBM.insert_seller_row(my_seller)
+
+
 def get_basic_info(soup):
     """
     Gets car make, year and model
     :param soup: html data from ad
     :return:
     """
-    # car name / title of the page
-    car_info = {}
+
     # get the make from the android app url
     make_soup = soup.find('link', href=re.compile(r"^android-app://com.autolist.autolist/autolist/search"))
-    print(f'make_soup: {make_soup}')
+
     make = re.search(r'make=*(\w.*).*&', str(make_soup)).group(1).replace('+', ' ')
-    car_info['Make'] = make
+
     # year and model from the title
     title = soup.find('div', class_='title').text.split(' ')
-    car_info['Year'] = title[0]
+    year = title[0]
+
     model_name_start = make.count(' ') + 2  # how many words / list elements until car name begins
     model = ' '.join(title[model_name_start:])
-    car_info['Model'] = model
-    print(f'General car info: {car_info}')
+    price = int(soup.find('div', class_='class="jsx-2634218832 price').text[1:].replace(',', ''))
+
+    return (price, make, model, year)
+
+
 def get_buyer_intelligence(soup):
     """
     Gets data from buyer intelligence section of ad
@@ -115,6 +138,8 @@ def get_buyer_intelligence(soup):
     print(f'Buyer Intelligence: {buyer_int}')
     if buyer_intelligence.find(string='Full Price History'):
         get_price_history(buyer_intelligence)
+
+
 def get_price_history(buyer_int):
     """
     Gets price history of ad
@@ -129,6 +154,8 @@ def get_price_history(buyer_int):
         delta = buyer_prices[index + 2].text
         price_history[date] = [price, delta]
     print(f'Price History: {price_history}')
+
+
 def get_general_info(soup):
     """
     Gets general vehicle information from ad
@@ -142,6 +169,10 @@ def get_general_info(soup):
         feature_value = feature.find(class_="feature-block feature-value").text
         features[feature_name] = feature_value
     print(f'Main Features: {features}')
+    return (features['Transmission'],features['Engine'],features['Fuel Type'],features['Exterior Color'],
+            features['Condition'],features['Mileage'],features['Gas Mileage'],features['Body Style'])
+
+
 def get_key_features(soup):
     """
     Gets key features information from ad
@@ -153,7 +184,8 @@ def get_key_features(soup):
     for section in key_features:
         for feature in section.findAll('li'):
             other_features.append(feature.text)
-    print(f'Other Features: {other_features}')
+
+
 def get_seller_info(soup):
     """
     Gets seller information from ad
@@ -162,11 +194,14 @@ def get_seller_info(soup):
     """
     seller = soup.findAll(class_="section -large-gtxs _no-margin", id="seller-info")
     address_and_phone = seller[0].findAll('span')
-    seller_info = {}
-    seller_info['Dealer Name'] = seller[0].find('b', id="dealer-name").text
-    seller_info['Address'] = address_and_phone[0].text
-    seller_info['Phone'] = address_and_phone[1].text
-    print(f'Seller Info: {seller_info}')
+
+    name = seller[0].find('b', id="dealer-name").text
+    adress = address_and_phone[0].text
+    phone = address_and_phone[1].text
+
+    return (name, phone, adress)
+
+
 def get_all_car_links_in_page(driver):
     """
     returns a list of specifics ads showed in one page of Autolist
@@ -190,6 +225,8 @@ def get_all_car_links_in_page(driver):
     for element in search_results.find_elements_by_tag_name('a'):
         car_ads.append(element)
     return car_ads
+
+
 def loops_through_ads(driver, ads_left):
     """
     Loops through a list of webpages containing car ads and checks if ad limit was reached
@@ -211,6 +248,8 @@ def loops_through_ads(driver, ads_left):
                 break
         break
     return stop, ads_left
+
+
 def next_page(driver, page_increase, url, pages_left):
     """
     function that loads the next ad listing page and checks if there is content
@@ -234,6 +273,8 @@ def next_page(driver, page_increase, url, pages_left):
         return False
     else:
         return True, pages_left
+
+
 def main():
     """ function that runs the program"""
     start_parser()
@@ -250,5 +291,7 @@ def main():
             driver.close()
             break
         loops += 1
+
+
 if __name__ == '__main__':
     main()
