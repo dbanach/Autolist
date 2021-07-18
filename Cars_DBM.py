@@ -1,6 +1,7 @@
 import pymysql
 import config
 
+
 class Cars_DBM:
     """"
     class to create and manage the database to work with Autolist webpage data.
@@ -12,15 +13,15 @@ class Cars_DBM:
         the constructor of the class. It creates the Database if it does not exist and creates the tables.
         """
 
-
         sql_code = "CREATE DATABASE IF NOT EXISTS " + config.DATABASENAME
         self.sql_command(sql_code)
-        self.create_table_seller()
+        sql_code = "USE " + config.DATABASENAME
+        self.sql_command(sql_code)
+        self.create_table_sellers()
         self.create_table_cars()
         self.create_table_car_type()
 
-
-    def sql_command(self, sql_code,_return=0):
+    def sql_command(self, sql_code, _return=0):
         """
         method that executes sql code
         :param sql_code:
@@ -30,11 +31,14 @@ class Cars_DBM:
 
         try:
             cursorInstance = connection.cursor()
+            if 'CREATE DATABASE' not in sql_code:
+                cursorInstance.execute('USE CARS')
+
             cursorInstance.execute(sql_code)
         except Exception as e:
-
+            print(sql_code)
             print("Exeception occured:{}".format(e))
-        if _return ==1:
+        if _return == 1:
             return cursor.fetchone()
 
     def connect_to_database(self):
@@ -48,6 +52,9 @@ class Cars_DBM:
 
         return (cursor, connection)
 
+    def use_database(self):
+        pass
+
     def show_db(self):
         """
         shows current databases
@@ -60,48 +67,41 @@ class Cars_DBM:
     def create_table_cars(self):
         """ method that creates the table CARS"""
 
-        sql_code = """  CREATE TABLE IF NOT EXISTS CARS(car_id AUTOINCREMENT PRIMARY KEY,
-                        car_type_id int NOT NULL,
-                        sold_by varchar NOT NULL,
-                        sale_price float,
-                        ext_color varchar,
-                        int_color varchar,                        
-                        transmission varchar,
-                        mileage float,
-                        
-                    FOREIGN KEY (sold_by) REFERENCES SELLERS(Name)),
-                     FOREIGN KEY (car_type_id) REFERENCES CAR_TYPE(car_type_id)"""
+        sql_code = """  CREATE TABLE IF NOT EXISTS CARS (car_id int AUTO_INCREMENT
+                        ,car_type_id int NOT NULL
+                        ,sold_by int NOT NULL
+                        ,sale_price float
+                        ,ext_color varchar(30)
+                        ,int_color varchar(30)                       
+                        ,transmission varchar(30)
+                        ,mileage float          
+                    ,PRIMARY KEY (car_id)    
+                    ,FOREIGN KEY (sold_by) REFERENCES SELLERS(seller_id)
+                    ,FOREIGN KEY (car_type_id) REFERENCES CAR_TYPE(car_type_id))"""
         self.sql_command(sql_code)
 
     def create_table_sellers(self):
         """ method that creates table sellers"""
-        sql_code = """ CREATE TABLE IF NOT EXISTS SELLERS(seller_id AUTOINCREMENT ,name varchar,
-                       address varchar,
-                       rating float,
-                       PRIMARY KEY (seller_id))
-                        
-        """
+        sql_code = """ CREATE TABLE IF NOT EXISTS SELLERS(seller_id int AUTO_INCREMENT
+         , name varchar(50) ,address varchar(50),rating float,PRIMARY KEY (seller_id))"""
         self.sql_command(sql_code)
 
     def create_table_car_type(self):
         """ method that creates table car_type"""
 
-        sql_code = """  CREATE TABLE IF NOT EXISTS CAR_TYPE(car_type_id AUTOINCREMENT PRIMARY KEY,
-                        make varchar,
-                        model varchar,
+        sql_code = """  CREATE TABLE IF NOT EXISTS CAR_TYPE(
+                        car_type_id int AUTO_INCREMENT PRIMARY KEY,
+                        make varchar(50),
+                        model varchar(30),
                         year datetime,
                         miles_per_galon_min float,
                         miles_per_galon_max float,
-                        trim varchar,
-                        drivetrain varchar,
-                        fuel_type varchar,
-                        engine varchar
-                        
+                        trim varchar(30),
+                        drivetrain varchar(30),
+                        fuel_type varchar(20),
+                        engine varchar(20))                        
                    """
         self.sql_command(sql_code)
-
-
-
 
     def insert_car_row(self, my_car, my_seller):
         """ method that inserts a row in table cars"""
@@ -114,7 +114,7 @@ class Cars_DBM:
                         model = {my_dict['model']} AND year = {my_dict['year']} 
                         
                     """
-        car_type_id = int(self.sql_command(sql_code,1)['car_type_id'])
+        car_type_id = int(self.sql_command(sql_code, 1)['car_type_id'])
 
         sql_code = f"""INSERT IGNORE INTO Cars (car_type_id,sold_by, sale_price, ext_color,int_color, transmission, mileage)
          VALUES ({car_type_id},{sold_by},{my_dict['sale_price']},{my_dict['ext_color']},{my_dict['int_color']}
@@ -127,8 +127,7 @@ class Cars_DBM:
     def insert_seller_row(self, my_seller):
         """ method that inserts a row in sellers table"""
 
-
-        name,  address, ratings = my_seller.getall()
+        name, address, ratings = my_seller.getall()
 
         sql_code = f"""INSERT IGNORE INTO Sellers (Name, address,phone)
                         -> VALUES( {name},  {address},{ratings});
@@ -137,7 +136,7 @@ class Cars_DBM:
         """
         self.sql_command(sql_code)
 
-    def insert_car_type_row(self,my_car):
+    def insert_car_type_row(self, my_car):
         """
         method that inserts new row in car_type table
         """
