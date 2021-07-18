@@ -150,3 +150,11 @@ class Cars_DBM:
                     {my_dict['fuel_type']},{my_dict['engine']})"""
 
         self.sql_command(sql_code)
+
+    def drop_database(self):
+        """
+        method to drop the database
+        :return:
+        """
+
+        sql_code = f""" DROP DATABASE {config.DATABASENAME} """
