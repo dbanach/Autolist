@@ -1,28 +1,52 @@
-# Autolist
-Scraping project using info from autolist
+# Cars.Com
+Scraping project using info from cars.com
 
-The website being used for this project is www.Autolist.com. It's a website with information about used cars on sale.
+The website used for this project is www.cars.com. It's a website with information about cars on sale in the USA.
 
-The program loops trough ads in the website and saves relevant information to a database.
+The program goes through ads in the website and saves relevant information to a database.
 
 To use the program, use the command-line interface to determine the scope of search. Use -h for help. 
 
-By default, the file searches for cars in a radius of 50 miles from New York, NY. The parameters that are customizable through the command line interface are as follows:
+The parameters that are customizable through the command line interface are as follows:
 
--b, ---body: Add body type to search. Accepted values: “any”, “convertible”, “coupe”, “crossover”, “hatchback”, “minivan”, “sedan”, “suv”, “passenger_cargo_van”, “truck”, “wagon”
+---body:
+**Definition**: Adds body type to search results.
+**Accepted values**: "any", "cargo_van", "coupe", "convertible", "hatchback", "minivan", "passenger_van", "pickup_truck", "suv", "sedan" and "wagon"
+**Default value**: "any"
 
--c, --cat: Add category to search. Accepted values: “any”, “american”, “classic”, “commuter”, “electric”, “family”, “fuel_efficient”, “hybrid”, “large”, “luxury”, “muscle”, “off_road”, “small”, “sport”, “supercar”
+--cond: 
+**Definition**: Adds condition to search results. 
+**Accepted values**: "all", "new", "new_cpo", "used", "cpo".
+**Default value**: "all"
+"cpo" is a Certified Pre-Owned car, which is a used car with quality certified by the website. 
+"new_cpo" will output both new and cpo cars.
 
--r, --radius: Change radius (in miles) of search. Accepted values: 10, 25, 50, 100, 150, 200, 300, 500, “any”
+--radius: 
+**Definition**: Change radius (in miles) of search. 
+**Accepted values**: "10", "20", "30", "40", "50", "75", "100", "150", "200", "250", "500", "any"
+**Default value**: "any"
 
--pmin, --price_min: Add min price (in thousands of USD) to search. Accepted values: 1 to 100
+--price_min: 
+**Definition**: Add min price (in thousands of USD) to search. 
+**Accepted values**: 0 to 2500
+**No default value**
 
--pmax, --price_max: Add max price (in thousands of USD) to search. Accepted values: 1 to 100
+--price_max: 
+**Definition**: Add max price (in thousands of USD) to search. 
+**Accepted values**: 0 to 2500
+**No default value**
 
--ymin, --year_min: Add min year of car to search. Accepted values: 1940 to 2021
+--year_min:
+**Definition**: Add min year of car to search. 
+**Accepted values**: 1900 to 2022
+**No default value**
 
--ymax, --year_max: Add max year of car to search. Accepted values: 1940 to 2021
+--year_max:
+**Definition**: Add max year of car to search. 
+**Accepted values**: 1900 to 2022
+**No default value**
 
--pg, --page_max: Add max number of pages to scrape. Accepted values: integer
-
--a, --ads_max: Add max number of ads to scrape. Accepted values: integer
+--ads_max:
+**Definition**: Add max number of ads to scrape.
+**Accepted values**: integer greater than 0
+**Default value**: By default the program will loop through all available ads in the search
