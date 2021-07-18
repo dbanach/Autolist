@@ -57,13 +57,40 @@ pip install selenium
 ```
 
 ###Command Line Commands
+To use the program, use the command-line interface to determine the scope of search. 
 
+Use -h for help.
+
+By default, the file searches for cars in a radius of 50 miles from New York, NY. 
+
+The parameters that are customizable through the command line interface are as follows:
+
+-b, ---body: Add body type to search. Accepted values: “any”, “convertible”, “coupe”, “crossover”, “hatchback”, “minivan”, “sedan”, “suv”, “passenger_cargo_van”, “truck”, “wagon”
+
+-c, --cat: Add category to search. Accepted values: “any”, “american”, “classic”, “commuter”, “electric”, “family”, “fuel_efficient”, “hybrid”, “large”, “luxury”, “muscle”, “off_road”, “small”, “sport”, “supercar”
+
+-r, --radius: Change radius (in miles) of search. Accepted values: 10, 25, 50, 100, 150, 200, 300, 500, “any”
+
+-pmin, --price_min: Add min price (in thousands of USD) to search. Accepted values: 1 to 100
+
+-pmax, --price_max: Add max price (in thousands of USD) to search. Accepted values: 1 to 100
+
+-ymin, --year_min: Add min year of car to search. Accepted values: 1940 to 2021
+
+-ymax, --year_max: Add max year of car to search. Accepted values: 1940 to 2021
+
+-pg, --page_max: Add max number of pages to scrape. Accepted values: integer
+
+-a, --ads_max: Add max number of ads to scrape. Accepted values: integer
 
 ###DataBase 
 A mysql database was used in order to store the relevant information wanted.
-The DataBase consists on 2 Tables, "Cars" and "Sellers".
-As the name indicates, each one stores the information of sellers and of 
-the cars.
+The DataBase consists on 3 Tables, "CARS","CAR_TYPE" and "SELLERS".
+
+CARS: Stores the particular information of a specific car on sale.
+CAR_TYPE: Stores the information of different car models by year (since each year the features
+could change)
+SELLERS: Stores the information of different car sellers.
 
 ![img.png](img.png)
 
