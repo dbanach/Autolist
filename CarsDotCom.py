@@ -265,10 +265,7 @@ def main():
 
     start_parser()
     url, max_ads = get_url()
-    
-    if max_ads is None:
-        
-    
+
     driver = webdriver.Chrome()
     driver.get(url)
     driver.implicitly_wait(50)
