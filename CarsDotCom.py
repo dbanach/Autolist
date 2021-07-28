@@ -161,12 +161,27 @@ def get_other_info(soup):
 
     other_info = soup.find('dl', class_="fancy-description-list")
 
-    other_info_dict['transmission'] = re.search(r'Transmission.*\s*<dd>*(.*)<\/', str(other_info)).group(1)
-    other_info_dict['engine'] = re.search(r'Engine.*\s*<dd>*(.*)<\/', str(other_info)).group(1)
+    try:
+        other_info_dict['transmission'] = re.search(r'Transmission.*\s*<dd>*(.*)<\/', str(other_info)).group(1)
+    except AttributeError:
+        print('Could not fetch transmission information')
+        other_info_dict['transmission'] = 'NA'
 
-    mpg = other_info.find('span', class_="sds-tooltip").find('span').text.split('–')
-    other_info_dict['mpg_min'] = mpg[0]
-    other_info_dict['mpg_max'] = mpg[1]
+    try:
+        other_info_dict['engine'] = re.search(r'Engine.*\s*<dd>*(.*)<\/', str(other_info)).group(1)
+    except AttributeError:
+        print('Could not fetch engine information')
+        other_info_dict['engine'] = 'NA'
+
+    try:
+        mpg = other_info.find('span', class_="sds-tooltip").find('span').text.split('–')
+    except AttributeError:
+        print('Could not fetch mpg information')
+        other_info_dict['mpg_min'] = 'NA'
+        other_info_dict['mpg_max'] = 'NA'
+    else:
+        other_info_dict['mpg_min'] = mpg[0]
+        other_info_dict['mpg_max'] = mpg[1]
 
     return other_info_dict
 
@@ -216,17 +231,17 @@ def get_seller_info(soup):
 
     return seller
 
-def write_to_db(my_dbm,my_car,my_seller):
+
+def write_to_db(my_dbm, my_car, my_seller):
     """function that receives a Cars_DBM object and writes with it to the database the information of an add"""
     my_dbm.insert_seller_row(my_seller)
     my_dbm.insert_car_type_row(my_car)
-    my_dbm.insert_car_row(my_car,my_seller)
-
+    my_dbm.insert_car_row(my_car, my_seller)
 
 
 def main():
     """ function that runs the program"""
-    car_dbm = Cars_DBM.Cars_DBM()
+    #car_dbm = Cars_DBM.Cars_DBM()
 
     start_parser()
     url, max_ads = get_url()
@@ -241,16 +256,14 @@ def main():
     keep_looping = True
     while keep_looping:
         car_soup = get_soup(driver)
-        general_info =get_general_info(car_soup)
-        other_info =get_other_info(car_soup)
-        seller_info=get_seller_info(car_soup)
-        my_car = Car_and_Seller.Car(general_info,other_info)
+        general_info = get_general_info(car_soup)
+        other_info = get_other_info(car_soup)
+        seller_info = get_seller_info(car_soup)
+        my_car = Car_and_Seller.Car(general_info, other_info)
         my_seller = Car_and_Seller.Seller(seller_info)
 
-
-        #delete or change to logging
+        # TODO: delete or change to logging
         print(general_info)
-
         print(get_other_info(car_soup))
         print(get_car_reviews(car_soup))
         print(get_seller_info(car_soup))
