@@ -103,6 +103,35 @@ def next_add(car_driver, ads_left):
     return True
 
 
+def next_page(car_driver, ads_left, previous_url):
+    """
+    Goes to the cars.com search's next search page and checks if ad limit was reached
+    :param car_driver: selenium driver
+    :param ads_left: int with number of ads left
+    :param previous_url: url of the previous page
+    :return: Return True if program should keep going trough ads or False otherwise
+    """
+    if ads_left == 0:
+        return False
+
+    try:
+        current_page = int(re.search(r'page=(\d*)&', url).group(1))
+    except ValueError:
+        page_index = previous_url.index('/results/?') + len('/results/?')
+        new_url = previous_url[:page_index] + 'page=2&' + previous_url[page_index:]
+    else:
+        new_page = page + 1
+        new_url = re.sub(r'page=(\d*)&', f'page={new_page}&', url_target)
+
+    driver.get(new_url)
+    car_driver.implicitly_wait(50)
+
+    go_to_ads(driver)
+    car_driver.implicitly_wait(50)
+
+    return True
+
+
 def get_soup(car_driver):
     """
     Downloads html data from website
@@ -274,6 +303,7 @@ def main():
     driver.implicitly_wait(50)
 
     keep_looping = True
+    cars_looped = 0
     while keep_looping:
         car_soup = get_soup(driver)
         general_info = get_general_info(car_soup)
@@ -293,8 +323,13 @@ def main():
 
         if max_ads is not None:
             max_ads -= 1
-        keep_looping = next_add(driver, max_ads)
-        
+        cars_looped += 1
+        print(cars_looped)
+        if cars_looped == 20:
+            new_url = next_page(driver, max_ads, url)
+        else:
+            keep_looping = next_add(driver, max_ads)
+
     print('The end')
     driver.close()
 
