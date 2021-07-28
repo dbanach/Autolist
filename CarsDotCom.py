@@ -123,14 +123,17 @@ def get_general_info(soup):
     :param soup: html data from ad
     :return: dictionary with features
     """
-
-    basics = soup.findAll('script')
-    basics_regex = re.search('"initialActivity"] = (.*})', str(basics)).group(1)
-    basics_dict = json.loads(basics_regex)
-
     filter_keys = ['make', 'model', 'trim', 'year', 'price', 'exterior_color', 'interior_color', 'drivetrain',
                    'fuel_type', 'mileage']
-    filtered_dict = {key: basics_dict[key] for key in filter_keys}
+    try:
+        basics = soup.findAll('script')
+        basics_regex = re.search('"initialActivity"] = (.*})', str(basics)).group(1)
+        basics_dict = json.loads(basics_regex)
+    except AttributeError:
+        print('Could not fetch general information')
+        filtered_dict = dict((key, 'NA') for key in filter_keys)
+    else:
+        filtered_dict = {key: basics_dict[key] for key in filter_keys}
 
     return filtered_dict
 
@@ -222,12 +225,15 @@ def get_seller_info(soup):
     seller['address'] = soup.find('div', class_="dealer-address").text
 
     rating_soup = soup.find('section', class_="sds-page-section seller-info")
-    seller['rating'] = re.search(r'<span class="sds-rating__count">(.*)<', str(rating_soup)).group(1)
-
-    review_soup = soup.findAll('a', class_="sds-rating__link sds-button-link")
-    for review in review_soup:
-        if re.search("click-vdp-to-dpp-reviews", str(review)):
-            seller['n_reviews'] = re.search(r'\((\d*).*r', review.text).group(1)
+    try:
+        seller['rating'] = re.search(r'<span class="sds-rating__count">(.*)<', str(rating_soup)).group(1)
+    except AttributeError:
+        print('Seller has no reviews')
+    else:
+        review_soup = soup.findAll('a', class_="sds-rating__link sds-button-link")
+        for review in review_soup:
+            if re.search("click-vdp-to-dpp-reviews", str(review)):
+                seller['n_reviews'] = re.search(r'\((\d*).*r', review.text).group(1)
 
     return seller
 
@@ -241,7 +247,7 @@ def write_to_db(my_dbm, my_car, my_seller):
 
 def main():
     """ function that runs the program"""
-    #car_dbm = Cars_DBM.Cars_DBM()
+    # car_dbm = Cars_DBM.Cars_DBM()
 
     start_parser()
     url, max_ads = get_url()
@@ -259,15 +265,17 @@ def main():
         general_info = get_general_info(car_soup)
         other_info = get_other_info(car_soup)
         seller_info = get_seller_info(car_soup)
+        number_of_features = get_number_of_features(car_soup)
+        car_reviews = get_car_reviews(car_soup)
         my_car = Car_and_Seller.Car(general_info, other_info)
         my_seller = Car_and_Seller.Seller(seller_info)
 
         # TODO: delete or change to logging
         print(general_info)
-        print(get_other_info(car_soup))
-        print(get_car_reviews(car_soup))
-        print(get_seller_info(car_soup))
-        print(get_number_of_features(car_soup))
+        print(other_info)
+        print(car_reviews)
+        print(seller_info)
+        print(number_of_features)
         keep_looping = next_add(driver, max_ads)
         max_ads -= 1
 
