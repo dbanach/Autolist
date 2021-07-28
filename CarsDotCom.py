@@ -5,6 +5,8 @@ from selenium.webdriver import ActionChains
 from bs4 import BeautifulSoup
 import argparse
 import json
+import Car_and_Seller
+import Cars_DBM
 
 
 def start_parser():
@@ -214,9 +216,18 @@ def get_seller_info(soup):
 
     return seller
 
+def write_to_db(my_dbm,my_car,my_seller):
+    """function that receives a Cars_DBM object and writes with it to the database the information of an add"""
+    my_dbm.insert_seller_row(my_seller)
+    my_dbm.insert_car_type_row(my_car)
+    my_dbm.insert_car_row(my_car,my_seller)
+
+
 
 def main():
     """ function that runs the program"""
+    car_dbm = Cars_DBM.Cars_DBM()
+
     start_parser()
     url, max_ads = get_url()
 
@@ -230,7 +241,16 @@ def main():
     keep_looping = True
     while keep_looping:
         car_soup = get_soup(driver)
-        print(get_general_info(car_soup))
+        general_info =get_general_info(car_soup)
+        other_info =get_other_info(car_soup)
+        seller_info=get_seller_info(car_soup)
+        my_car = Car_and_Seller.Car(general_info,other_info)
+        my_seller = Car_and_Seller.Seller(seller_info)
+
+
+        #delete or change to logging
+        print(general_info)
+
         print(get_other_info(car_soup))
         print(get_car_reviews(car_soup))
         print(get_seller_info(car_soup))
