@@ -132,6 +132,19 @@ def next_page(car_driver, ads_left, previous_url):
     return True
 
 
+def new_page_check(car_driver):
+    """
+    Checks if there are car ads in new page
+    :return: True if there are car ads or False otherwise
+    """
+    try:
+        no_more_data = car_driver.find_element_by_class_name("sds-heading--4")
+    except NoSuchElementException:
+        return True
+    else:
+        return False
+
+
 def get_soup(car_driver):
     """
     Downloads html data from website
@@ -325,8 +338,13 @@ def main():
             max_ads -= 1
         cars_looped += 1
         print(cars_looped)
+        
         if cars_looped == 20:
             new_url = next_page(driver, max_ads, url)
+            if new_url:
+                keep_looping = new_page_check(driver)
+            else:
+                keep_looping = False
         else:
             keep_looping = next_add(driver, max_ads)
 
