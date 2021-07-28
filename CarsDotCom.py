@@ -290,8 +290,10 @@ def main():
         print(car_reviews)
         print(seller_info)
         print(number_of_features)
-        keep_looping = next_add(driver, max_ads)
-        max_ads -= 1
+
+        if max_ads is not None:
+            keep_looping = next_add(driver, max_ads)
+            max_ads -= 1
 
     print('The end')
     driver.close()
