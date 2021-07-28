@@ -133,6 +133,8 @@ def get_general_info(soup):
         print('Could not fetch general information')
         filtered_dict = dict((key, 'NA') for key in filter_keys)
     else:
+        if 'trim' not in basics_dict.keys():
+            basics_dict['trim'] = 'NA'
         filtered_dict = {key: basics_dict[key] for key in filter_keys}
 
     return filtered_dict
@@ -197,18 +199,30 @@ def get_car_reviews(soup):
     """
     car_ratings = dict()
     rating_soup = soup.find('section', class_="sds-page-section vehicle-reviews")
-    car_ratings['rating'] = re.search(r'<span class="sds-rating__count">(.*)<', str(rating_soup)).group(1)
+    try:
+        car_ratings['rating'] = re.search(r'<span class="sds-rating__count">(.*)<', str(rating_soup)).group(1)
+    except AttributeError:
+        print('Car has no ratings')
+        car_ratings['rating'] = 'NA'
+        car_ratings['recommended'] = 'NA'
+        car_ratings['n_reviews'] = 'NA'
+        car_ratings['Comfort'] = 'NA'
+        car_ratings['Interior design'] = 'NA'
+        car_ratings['Performance'] = 'NA'
+        car_ratings['Value for the money'] = 'NA'
+        car_ratings['Exterior styling'] = 'NA'
+        car_ratings['Reliability'] = 'NA'
+    else:
+        car_ratings['recommended'] = re.search(r'^(\d*%)', soup.find('div', class_="reviews-recommended").text).group(1)
 
-    car_ratings['recommended'] = re.search(r'^(\d*%)', soup.find('div', class_="reviews-recommended").text).group(1)
-
-    rating_breakdown = soup.find('ul', class_="sds-definition-list review-breakdown--list").findAll('li')
-    for rating in rating_breakdown:
-        car_ratings[rating.find('span', class_="sds-definition-list__display-name").text] = rating.find('span',
-                                                                                                        class_="sds-definition-list__value").text
-    review_soup = soup.findAll('a', class_="sds-rating__link sds-button-link")
-    for review in review_soup:
-        if re.search("page-over-page", str(review)):
-            car_ratings['n_reviews'] = re.search(r'\((\d*).*r', review.text).group(1)
+        rating_breakdown = soup.find('ul', class_="sds-definition-list review-breakdown--list").findAll('li')
+        for rating in rating_breakdown:
+            car_ratings[rating.find('span', class_="sds-definition-list__display-name").text] = rating.find('span',
+                                                                                                            class_="sds-definition-list__value").text
+        review_soup = soup.findAll('a', class_="sds-rating__link sds-button-link")
+        for review in review_soup:
+            if re.search("page-over-page", str(review)):
+                car_ratings['n_reviews'] = re.search(r'\((\d*).*r', review.text).group(1)
 
     return car_ratings
 
@@ -251,7 +265,10 @@ def main():
 
     start_parser()
     url, max_ads = get_url()
-
+    
+    if max_ads is None:
+        
+    
     driver = webdriver.Chrome()
     driver.get(url)
     driver.implicitly_wait(50)
