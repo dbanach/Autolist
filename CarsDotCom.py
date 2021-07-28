@@ -292,9 +292,9 @@ def main():
         print(number_of_features)
 
         if max_ads is not None:
-            keep_looping = next_add(driver, max_ads)
             max_ads -= 1
-
+        keep_looping = next_add(driver, max_ads)
+        
     print('The end')
     driver.close()
 
