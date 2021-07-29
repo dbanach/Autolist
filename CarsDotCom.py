@@ -110,8 +110,15 @@ def go_to_ads(car_driver):
     :param car_driver: selenium driver
     :return: None
     """
-    first_ad = car_driver.find_element_by_class_name("vehicle-card-link")
-    ActionChains(car_driver).click(first_ad).perform()
+    try:
+        first_ad = car_driver.find_element_by_class_name("vehicle-card-link")
+    except NoSuchElementException:
+        print('Could not find first ad of the page')
+        logger.info('Could not find first ad of the page')
+        logger.error('element with class name "vehicle-card-link" was not found')
+    else:
+        ActionChains(car_driver).click(first_ad).perform()
+        logger.debug('clicked on first ad of the page')
 
 
 def back_to_search_next_ad(car_driver, cars_looped_on_page):
