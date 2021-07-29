@@ -7,7 +7,29 @@ from bs4 import BeautifulSoup
 import argparse
 import json
 import Car_and_Seller
-import Cars_DBM
+from Cars_DBM import Cars_DBM
+import logging
+import config
+
+# Create logger
+logger = logging.getLogger('cars')
+logger.setLevel(logging.DEBUG)
+
+# Create Formatter
+formatter = logging.Formatter(
+    '%(asctime)s-%(levelname)s-FILE:%(filename)s-FUNC:%(funcName)s-LINE:%(lineno)d-%(message)s')
+
+# create a file handler and add it to logger
+file_handler = logging.FileHandler('carsdotcom.log')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
+# create a file handler for stdoutput
+stream_handler = logging.FileHandler('stdout.log')
+stream_handler.setLevel(logging.INFO)
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 
 def start_parser():
@@ -89,7 +111,7 @@ def back_to_search_next_ad(car_driver, cars_looped_on_page):
     :return: True if there are more cars to loop through, False otherwise 
     """
     car_driver.back()
-    car_driver.implicitly_wait(50)
+    car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
 
     ads_in_page = car_driver.find_elements_by_class_name("vehicle-card-link")
 
@@ -98,7 +120,7 @@ def back_to_search_next_ad(car_driver, cars_looped_on_page):
         return False
     else:
         ActionChains(car_driver).click(ads_in_page[cars_looped_on_page]).perform()
-        car_driver.implicitly_wait(20)
+        car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
         return True
 
 
@@ -121,7 +143,7 @@ def next_ad(car_driver, cars_looped_on_page):
             return False
 
         ActionChains(car_driver).click(next_page_link).perform()
-        car_driver.implicitly_wait(50)
+        car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
         return True
 
 
@@ -142,7 +164,7 @@ def next_page(car_driver, previous_url):
         new_url = re.sub(r'page=(\d*)&', f'page={new_page}&', previous_url)
 
     car_driver.get(new_url)
-    car_driver.implicitly_wait(50)
+    car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
 
     return new_url
 
@@ -347,17 +369,17 @@ def check_and_close_pop_up(car_driver):
 
 def main():
     """ function that runs the program"""
-    # car_dbm = Cars_DBM.Cars_DBM()
+    #car_dbm = Cars_DBM()
 
     start_parser()
     url, max_ads = get_url()
 
     driver = webdriver.Chrome()
     driver.get(url)
-    driver.implicitly_wait(10)
+    driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
 
     go_to_ads(driver)
-    driver.implicitly_wait(10)
+    driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
 
     keep_looping = True
     cars_looped = 0
