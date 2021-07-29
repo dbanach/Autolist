@@ -418,13 +418,13 @@ def check_and_close_pop_up(car_driver):
         pass
     else:
         ActionChains(car_driver).click(ad_close_button).perform()
-        car_driver.implicitly_wait(10)
+        car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
         logger.debug('Closed pop up')
 
 
 def main():
     """ function that runs the program"""
-    # car_dbm = Cars_DBM()
+    car_dbm = Cars_DBM()
 
     start_parser()
     url, max_ads = get_url()
@@ -441,7 +441,7 @@ def main():
     total_cars_looped = 0
     last_link = None
     while keep_looping:
-        driver.implicitly_wait(10)
+        driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
 
         if last_link != driver.current_url:
             last_link = driver.current_url
@@ -456,9 +456,16 @@ def main():
 
             cars_looped_current_page += 1
             total_cars_looped += 1
-
             logger.debug(f'Cars looped on current search page:{cars_looped_current_page}')
             logger.debug(f'Total cars looped:{total_cars_looped}')
+
+            if general_info['make'] != 'NA' and general_info['model'] != 'NA':
+                car_dbm.insert_seller_row(my_seller)
+                logger.debug('Inserted new row in seller db')
+                car_dbm.insert_car_type_row(my_car)
+                logger.debug('Inserted new row in car_type db')
+                car_dbm.insert_car_row(my_car, my_seller)
+                logger.debug('Inserted new row in car db')
 
             if max_ads is not None:
                 max_ads -= 1
@@ -481,7 +488,7 @@ def main():
                 keep_looping = False
             else:
                 go_to_ads(driver)
-                driver.implicitly_wait(10)
+                driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
 
     print('Car ads scrapped successfully')
     logger.info('Car ads scrapped successfully')
