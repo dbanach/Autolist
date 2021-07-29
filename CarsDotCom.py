@@ -65,7 +65,7 @@ def get_url():
     max_year = args.year_max
 
     url = f'https://www.cars.com/shopping/results/?{body}&dealer_id=&list_price_max={max_price}&' \
-          f'list_price_min={min_price}&makes[]=&maximum_distance={radius}&mileage_max=&page_size=250&' \
+          f'list_price_min={min_price}&makes[]=&maximum_distance={radius}&mileage_max=&page_size=20&' \
           f'sort=best_match_desc&stock_type={condition}&year_max={max_year}&year_min={min_year}&zip=10001'
 
     return url, args.ads_max
@@ -89,9 +89,11 @@ def back_to_search_next_ad(car_driver, cars_looped_on_page):
     :return: True if there are more cars to loop through, False otherwise 
     """
     car_driver.back()
-    car_driver.implicitly_wait(20)
+    car_driver.implicitly_wait(50)
 
     ads_in_page = car_driver.find_elements_by_class_name("vehicle-card-link")
+
+    print(f'ads in page: {len(ads_in_page)}')
     if cars_looped_on_page >= len(ads_in_page):
         return False
     else:
