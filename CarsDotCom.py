@@ -225,6 +225,7 @@ def get_soup(car_driver):
 
     html = car_driver.page_source
     soup = BeautifulSoup(html, 'lxml')
+    logger.debug('Beautiful soup for new ad generated')
 
     return soup
 
