@@ -365,13 +365,13 @@ def get_seller_info(soup):
     :param soup: html data from ad
     :return: dictionary with seller info
     """
-
     seller = dict()
     try:
         seller['name'] = soup.find('h3', class_="sds-heading--5 heading seller-name").text
         seller['address'] = soup.find('div', class_="dealer-address").text
     except AttributeError:
         print('Could not fetch seller information')
+        logger.info('Could not fetch seller information')
         seller['name'] = 'NA'
         seller['address'] = 'NA'
         seller['rating'] = 'NA'
@@ -383,12 +383,14 @@ def get_seller_info(soup):
         seller['rating'] = re.search(r'<span class="sds-rating__count">(.*)<', str(rating_soup)).group(1)
     except AttributeError:
         print('Seller has no reviews')
+        logger.info('Seller has no reviews')
     else:
         review_soup = soup.findAll('a', class_="sds-rating__link sds-button-link")
         for review in review_soup:
             if re.search("click-vdp-to-dpp-reviews", str(review)):
                 seller['n_reviews'] = re.search(r'\((\d*).*r', review.text).group(1)
-
+    
+    logger.debug(f'Seller info: {seller}')
     return seller
 
 
