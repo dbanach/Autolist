@@ -156,19 +156,23 @@ def next_ad(car_driver, cars_looped_on_page):
     :param cars_looped_on_page: number of cars looped on current page
     :return: Return True if there are more ads or False otherwise
     """
-
     try:
         next_page_link = car_driver.find_element_by_class_name("srp-carousel-next-link")
     except NoSuchElementException:
+        logger.debug('Car Carousel not found, calling back_to_search_next_ad() ')
         last_ad_check = back_to_search_next_ad(car_driver, cars_looped_on_page)
+        logger.debug(f'returning {last_ad_check}')
         return last_ad_check
     else:
+        logger.debug('Car Carousel found')
         last_page_check = next_page_link.get_attribute('href')[-1]
         if last_page_check == '#':
+            logger.debug('Current ad is last ad on carousel/search page')
             return False
 
         ActionChains(car_driver).click(next_page_link).perform()
         car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
+        logger.debug('Click on next ad and returning True')
         return True
 
 
