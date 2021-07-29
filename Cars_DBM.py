@@ -101,7 +101,8 @@ class Cars_DBM:
                         trim varchar(30),
                         drivetrain varchar(30),
                         fuel_type varchar(20),
-                        engine varchar(20))                        
+                        engine varchar(20),
+                        type varchar(20) DEFAULT 'NA')                        
                    """
         self.sql_command(sql_code)
 
