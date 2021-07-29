@@ -349,12 +349,7 @@ def main():
     # car_dbm = Cars_DBM.Cars_DBM()
 
     start_parser()
-    # url, max_ads = get_url()
-
-    # url = 'https://www.cars.com/shopping/results/?page=1&page_size=2&dealer_id=&list_price_max=&list_price_min=&makes[]=&maximum_distance=all&mileage_max=&sort=best_match_desc&stock_type=all&year_max=1930&year_min=&zip=10001'
-    # url = 'https://www.cars.com/shopping/results/?page=2&page_size=2&dealer_id=&list_price_max=&list_price_min=&makes[]=&maximum_distance=all&mileage_max=&sort=best_match_desc&stock_type=all&year_max=1930&year_min=&zip=10001'
-    url = 'https://www.cars.com/shopping/results/?dealer_id=&list_price_max=&list_price_min=&makes[]=&maximum_distance=all&mileage_max=&page_size=2&sort=best_match_desc&stock_type=all&year_max=1923&year_min=&zip=10001'
-    max_ads = None
+    url, max_ads = get_url()
 
     driver = webdriver.Chrome()
     driver.get(url)
