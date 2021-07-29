@@ -434,7 +434,8 @@ def main():
     driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
 
     keep_looping = True
-    cars_looped = 0
+    cars_looped_current_page = 0
+    total_cars_looped = 0
     last_link = None
     while keep_looping:
         driver.implicitly_wait(10)
@@ -450,35 +451,38 @@ def main():
             my_car = Car_and_Seller.Car(general_info, other_info)
             my_seller = Car_and_Seller.Seller(seller_info)
 
-            cars_looped += 1
-            # TODO: delete or change to logging
-            print(general_info)
-            print(other_info)
-            print(car_reviews)
-            print(seller_info)
-            print(number_of_features)
-            print(cars_looped)
+            cars_looped_current_page += 1
+            total_cars_looped += 1
+            
+            logger.debug(f'Cars looped on current search page:{cars_looped_current_page}')
+            logger.debug(f'Total cars looped:{total_cars_looped}')
 
             if max_ads is not None:
                 max_ads -= 1
+                logger.debug(f'Current max ads:{max_ads}')
                 if max_ads == 0:
                     keep_looping = False
+        else:
+            logger.warning(f'Previous car ad is the same as current, error in loop '
+                           f'Link: {last_link}')
 
-        ads_remaining = next_ad(driver, cars_looped)
+        ads_remaining = next_ad(driver, cars_looped_current_page)
         if not ads_remaining:
+            logger.debug('No ads remaining, going to next page')
             url = next_page(driver, url)
             check_and_close_pop_up(driver)
             ads_in_page = new_page_check(driver)
-            cars_looped = 0
+            cars_looped_current_page = 0
             if not ads_in_page:
+                logger.debug(f'Stopping while loop')
                 keep_looping = False
             else:
                 go_to_ads(driver)
                 driver.implicitly_wait(10)
 
     print('Car ads scrapped successfully')
+    logger.info('Car ads scrapped successfully')
     driver.close()
-
 
 if __name__ == '__main__':
     main()
