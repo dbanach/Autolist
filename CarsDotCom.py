@@ -333,6 +333,7 @@ def get_car_reviews(soup):
         car_ratings['rating'] = re.search(r'<span class="sds-rating__count">(.*)<', str(rating_soup)).group(1)
     except AttributeError:
         print('Car has no ratings')
+        logger.info('Car has no ratings')
         car_ratings['rating'] = 'NA'
         car_ratings['recommended'] = 'NA'
         car_ratings['n_reviews'] = 'NA'
@@ -354,6 +355,7 @@ def get_car_reviews(soup):
             if re.search("page-over-page", str(review)):
                 car_ratings['n_reviews'] = re.search(r'\((\d*).*r', review.text).group(1)
 
+    logger.debug(f'car ratings: {car_ratings}')
     return car_ratings
 
 
