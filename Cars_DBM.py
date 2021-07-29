@@ -18,8 +18,8 @@ class Cars_DBM:
         sql_code = "USE " + config.DATABASENAME
         self.sql_command(sql_code)
         self.create_table_sellers()
-        self.create_table_cars()
         self.create_table_car_type()
+        self.create_table_cars()
 
     def sql_command(self, sql_code, _return=0):
         """
@@ -35,13 +35,14 @@ class Cars_DBM:
                 cursorInstance.execute('USE CARS')
 
             cursorInstance.execute(sql_code)
+            connection.commit()
         except Exception as e:
             print(sql_code)
             print("Exeception occured:{}".format(e))
         if _return == 1:
-            return cursor.fetchone()
-        elif _return== 2:
-            return cursor.fetchall()
+            return cursorInstance.fetchone()
+        elif _return == 2:
+            return cursorInstance.fetchall()
 
     def connect_to_database(self):
         """
@@ -85,7 +86,7 @@ class Cars_DBM:
     def create_table_sellers(self):
         """ method that creates table sellers"""
         sql_code = """ CREATE TABLE IF NOT EXISTS SELLERS(seller_id int AUTO_INCREMENT
-         , name varchar(50) ,address varchar(50),rating float,PRIMARY KEY (seller_id))"""
+         , seller_name varchar(50) ,address varchar(100),rating float ,PRIMARY KEY (seller_id))"""
         self.sql_command(sql_code)
 
     def create_table_car_type(self):
@@ -95,9 +96,9 @@ class Cars_DBM:
                         car_type_id int AUTO_INCREMENT PRIMARY KEY,
                         make varchar(50),
                         model varchar(30),
-                        year datetime,
-                        miles_per_galon_min float,
-                        miles_per_galon_max float,
+                        year varchar(10),
+                        mpg_min float,
+                        mpg_max float,
                         trim varchar(30),
                         drivetrain varchar(30),
                         fuel_type varchar(20),
@@ -109,19 +110,22 @@ class Cars_DBM:
     def insert_car_row(self, my_car, my_seller):
         """ method that inserts a row in table cars"""
 
-        sold_by = my_seller.getname()
-
         my_dict = my_car.get_car_dict()
 
-        sql_code = f"""SELECT car_type_id FROM CAR_TYPE WHERE make= {my_dict['make']} AND 
-                        model = {my_dict['model']} AND year = {my_dict['year']} 
+        sql_code = f"""SELECT car_type_id FROM CAR_TYPE WHERE make= "{my_dict['make']}" AND 
+                        model = '{my_dict['model']}' AND year = '{my_dict['year']}' 
                         
                     """
+
         car_type_id = int(self.sql_command(sql_code, 1)['car_type_id'])
+        print(f'')
+        sql_code = f"""SELECT seller_id FROM sellers WHERE seller_name = "{my_seller.getname()}"  AND address = '{my_seller.getadress()}'"""
+
+        sold_by = int(self.sql_command(sql_code, 1)['seller_id'])
 
         sql_code = f"""INSERT IGNORE INTO Cars (car_type_id,sold_by, sale_price, ext_color,int_color, transmission, mileage)
-         VALUES ({car_type_id},{sold_by},{my_dict['sale_price']},{my_dict['ext_color']},{my_dict['int_color']}
-         ,{my_dict['transmission']},{my_dict['mileage']})
+         VALUES ({car_type_id},{sold_by},{my_dict['price']},'{my_dict['exterior_color']}','{my_dict['interior_color']}'
+         ,'{my_dict['transmission']}',{my_dict['mileage']})
         
         
         """
@@ -130,13 +134,9 @@ class Cars_DBM:
     def insert_seller_row(self, my_seller):
         """ method that inserts a row in sellers table"""
 
-        name, address, ratings = my_seller.getall()
+        name, address, rating = my_seller.getall()
 
-        sql_code = f"""INSERT IGNORE INTO Sellers (Name, address,phone)
-                        -> VALUES( {name},  {address},{ratings});
-        
-        
-        """
+        sql_code = f"""INSERT IGNORE INTO Sellers (seller_name, address,rating) VALUES( "{name}",  "{address}",{rating})"""
         self.sql_command(sql_code)
 
     def insert_car_type_row(self, my_car):
@@ -146,10 +146,7 @@ class Cars_DBM:
 
         my_dict = my_car.get_car_dict()
 
-        sql_code = f"""INSERT IGNORE INTO CAR_TYPE (make,model, year,miles_per_galon_min, miles_per_galon_max
-                    ,trim, drivetrain, fuel_type,engine) VALUES ({my_dict['make']},{my_dict['model']},{my_dict['year']}
-                    ,{my_dict['miles_per_galon_min']},{my_dict['miles_per_galon_max']},{my_dict['trim']},{my_dict['drivetrain']},
-                    {my_dict['fuel_type']},{my_dict['engine']})"""
+        sql_code = f"""INSERT IGNORE INTO CAR_TYPE (make,model, year,mpg_min, mpg_max,trim, drivetrain, fuel_type,engine) VALUES ('{my_dict['make']}','{my_dict['model']}','{my_dict['year']}',{my_dict['mpg_min']},{my_dict['mpg_max']},'{my_dict['trim']}','{my_dict['drivetrain']}','{my_dict['fuel_type']}','{my_dict['engine']}')"""
 
         self.sql_command(sql_code)
 
@@ -161,10 +158,20 @@ class Cars_DBM:
 
         sql_code = f""" DROP DATABASE {config.DATABASENAME} """
 
-    def test_data(self):
+    def get_all_make_model(self, ):
+        """
+        method that returns all of the make,model from the table car_type
+        :return:
+        """
+        sql_code = """ SELECT make, model FROM car_type"""
+        result = self.sql_command(sql_code, 2)
+        return result
 
-        sql_code = "SELECT car_id,mileage FROM CARS"
-        data = self.sql_command(sql_code,_return=2)
+    def update_car_type(self, make, model, type_):
+        """
+        method that receives a make, model and type and updates the table car_type column type,  in rows where the make=make, model = model
 
-        for d in data:
-            print(d['car_id'])
+        """
+
+        sql_code = f"""UPDATE car_type SET type = '{type_}' WHERE make = '{make}' AND model = '{model}'"""
+        self.sql_command(sql_code)
