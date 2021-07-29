@@ -165,8 +165,8 @@ def get_other_info(soup):
     other_info_dict['engine'] = re.search(r'Engine.*\s*<dd>*(.*)<\/', str(other_info)).group(1)
 
     mpg = other_info.find('span', class_="sds-tooltip").find('span').text.split('–')
-    other_info_dict['mpg_min'] = mpg[0]
-    other_info_dict['mpg_max'] = mpg[1]
+    other_info_dict['mile_per_galon_min'] = mpg[0]
+    other_info_dict['mile_per_galon_max'] = mpg[1]
 
     return other_info_dict
 
@@ -246,7 +246,9 @@ def main():
         seller_info=get_seller_info(car_soup)
         my_car = Car_and_Seller.Car(general_info,other_info)
         my_seller = Car_and_Seller.Seller(seller_info)
-
+        car_dbm.insert_seller_row(my_seller)
+        car_dbm.insert_car_type_row(my_car)
+        car_dbm.insert_car_row(my_car,my_seller)
 
         #delete or change to logging
         print(general_info)
@@ -256,11 +258,12 @@ def main():
         print(get_seller_info(car_soup))
         print(get_number_of_features(car_soup))
         keep_looping = next_add(driver, max_ads)
-        max_ads -= 1
+        if max_ads is not None:
+            max_ads -= 1
 
     print('The end')
     driver.close()
-
+    print(d)
 
 if __name__ == '__main__':
     main()

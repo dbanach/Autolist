@@ -40,6 +40,8 @@ class Cars_DBM:
             print("Exeception occured:{}".format(e))
         if _return == 1:
             return cursor.fetchone()
+        elif _return== 2:
+            return cursor.fetchall()
 
     def connect_to_database(self):
         """
@@ -157,3 +159,11 @@ class Cars_DBM:
         """
 
         sql_code = f""" DROP DATABASE {config.DATABASENAME} """
+
+    def test_data(self):
+
+        sql_code = "SELECT car_id,mileage FROM CARS"
+        data = self.sql_command(sql_code,_return=2)
+
+        for d in data:
+            print(d['car_id'])
