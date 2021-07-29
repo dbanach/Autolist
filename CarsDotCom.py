@@ -317,7 +317,7 @@ def get_other_info(soup):
             other_info_dict['mpg_max'] = mpg[1]
 
     logger.debug(f'other info: {other_info_dict}')
-    
+
     return other_info_dict
 
 
@@ -389,7 +389,7 @@ def get_seller_info(soup):
         for review in review_soup:
             if re.search("click-vdp-to-dpp-reviews", str(review)):
                 seller['n_reviews'] = re.search(r'\((\d*).*r', review.text).group(1)
-    
+
     logger.debug(f'Seller info: {seller}')
     return seller
 
@@ -456,7 +456,7 @@ def main():
 
             cars_looped_current_page += 1
             total_cars_looped += 1
-            
+
             logger.debug(f'Cars looped on current search page:{cars_looped_current_page}')
             logger.debug(f'Total cars looped:{total_cars_looped}')
 
@@ -486,6 +486,7 @@ def main():
     print('Car ads scrapped successfully')
     logger.info('Car ads scrapped successfully')
     driver.close()
+
 
 if __name__ == '__main__':
     main()
