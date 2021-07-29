@@ -80,56 +80,69 @@ def go_to_ads(car_driver):
     ActionChains(car_driver).click(first_ad).perform()
 
 
-def next_add(car_driver, ads_left):
+def back_to_search_next_ad(car_driver, cars_looped_on_page):
+    car_driver.back()
+    car_driver.implicitly_wait(20)
+    
+    ads_in_page = car_driver.find_elements_by_class_name("vehicle-card-link")
+    if cars_looped_on_page >= len(ads_in_page):
+        return False
+    else:
+        ActionChains(car_driver).click(ads_in_page[cars_looped_on_page]).perform()
+        car_driver.implicitly_wait(20)
+        return True
+
+
+def next_ad(car_driver, cars_looped_on_page):
     """
-    Goes to the cars.com search's next ad and checks if ad limit was reached
+    Goes to the cars.com search's next ad
     :param car_driver: selenium driver
-    :param ads_left: int with number of ads left
-    :return: Return True if program should keep going trough ads or False otherwise
+    :param cars_looped_on_page: number of cars looped on current page
+    :return: Return True if there are more ads or False otherwise
     """
 
-    if ads_left == 0:
-        return False
+    try:
+        next_page_link = car_driver.find_element_by_class_name("srp-carousel-next-link")
+    except NoSuchElementException:
+        last_ad_check = back_to_search_next_ad(car_driver, cars_looped_on_page)
+        return last_ad_check
+    else:
+        last_page_check = next_page_link.get_attribute('href')[-1]
+        if last_page_check == '#':
+            return False
 
-    car_driver.implicitly_wait(50)
-    next_page_link = car_driver.find_element_by_class_name("srp-carousel-next-link")
-
-    last_page_check = next_page_link.get_attribute('href')[-1]
-    if last_page_check == '#':
-        return False
-
-    ActionChains(car_driver).click(next_page_link).perform()
-
-    return True
+        ActionChains(car_driver).click(next_page_link).perform()
+        car_driver.implicitly_wait(50)
+        return True
 
 
-def next_page(car_driver, ads_left, previous_url):
+def next_page(car_driver, previous_url):
     """
     Goes to the cars.com search's next search page and checks if ad limit was reached
     :param car_driver: selenium driver
-    :param ads_left: int with number of ads left
-    :param previous_url: url of the previous page
+    :param previous_url: selenium driver
     :return: Return True if program should keep going trough ads or False otherwise
     """
-    if ads_left == 0:
-        return False
-
+    print('next page function check')
+    print(f'Previous url: {previous_url}')
     try:
-        current_page = int(re.search(r'page=(\d*)&', url).group(1))
+        current_page = int(re.search(r'page=(\d*)&', previous_url).group(1))
     except ValueError:
         page_index = previous_url.index('/results/?') + len('/results/?')
         new_url = previous_url[:page_index] + 'page=2&' + previous_url[page_index:]
     else:
-        new_page = page + 1
-        new_url = re.sub(r'page=(\d*)&', f'page={new_page}&', url_target)
-
-    driver.get(new_url)
+        new_page = current_page + 1
+        new_url = re.sub(r'page=(\d*)&', f'page={new_page}&', previous_url)
+    
+    print(f'new page: {new_page}')
+    print(f'new url:{new_url}')
+    car_driver.get(new_url)
     car_driver.implicitly_wait(50)
 
-    go_to_ads(driver)
-    car_driver.implicitly_wait(50)
+    go_to_ads(car_driver)
+    car_driver.implicitly_wait(10)
 
-    return True
+    return new_url
 
 
 def new_page_check(car_driver):
@@ -175,8 +188,9 @@ def get_general_info(soup):
         print('Could not fetch general information')
         filtered_dict = dict((key, 'NA') for key in filter_keys)
     else:
-        if 'trim' not in basics_dict.keys():
-            basics_dict['trim'] = 'NA'
+        for key in filter_keys:
+            if key not in basics_dict.keys():
+                basics_dict[key] = 'NA'
         filtered_dict = {key: basics_dict[key] for key in filter_keys}
 
     return filtered_dict
@@ -227,8 +241,12 @@ def get_other_info(soup):
         other_info_dict['mpg_min'] = 'NA'
         other_info_dict['mpg_max'] = 'NA'
     else:
-        other_info_dict['mpg_min'] = mpg[0]
-        other_info_dict['mpg_max'] = mpg[1]
+        if len(mpg) == 1:
+            other_info_dict['mpg_min'] = mpg[0]
+            other_info_dict['mpg_max'] = mpg[0]
+        else:
+            other_info_dict['mpg_min'] = mpg[0]
+            other_info_dict['mpg_max'] = mpg[1]
 
     return other_info_dict
 
@@ -310,14 +328,15 @@ def main():
 
     driver = webdriver.Chrome()
     driver.get(url)
-    driver.implicitly_wait(50)
+    driver.implicitly_wait(10)
 
     go_to_ads(driver)
-    driver.implicitly_wait(50)
+    driver.implicitly_wait(10)
 
     keep_looping = True
     cars_looped = 0
     while keep_looping:
+        driver.implicitly_wait(10)
         car_soup = get_soup(driver)
         general_info = get_general_info(car_soup)
         other_info = get_other_info(car_soup)
@@ -333,20 +352,23 @@ def main():
         print(car_reviews)
         print(seller_info)
         print(number_of_features)
+        cars_looped += 1
+        print(cars_looped)
 
         if max_ads is not None:
             max_ads -= 1
-        cars_looped += 1
-        print(cars_looped)
-        
-        if cars_looped == 20:
-            new_url = next_page(driver, max_ads, url)
-            if new_url:
+            if max_ads == 0:
+                keep_looping = False
+
+        ads_remaining = next_ad(driver, cars_looped)
+        if not ads_remaining:
+            url = next_page(driver, url)
+            ads_in_page = new_page_check(driver)
+            cars_looped = 0
+            if ads_in_page:
                 keep_looping = new_page_check(driver)
             else:
                 keep_looping = False
-        else:
-            keep_looping = next_add(driver, max_ads)
 
     print('The end')
     driver.close()
