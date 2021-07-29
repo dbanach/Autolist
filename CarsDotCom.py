@@ -252,8 +252,11 @@ def get_general_info(soup):
     else:
         for key in filter_keys:
             if key not in basics_dict.keys():
+                logger.info(f'Could not find {key} for car ad, adding NA for it')
                 basics_dict[key] = 'NA'
         filtered_dict = {key: basics_dict[key] for key in filter_keys}
+        
+    logger.debug(f'general info: {filtered_dict}')
 
     return filtered_dict
 
