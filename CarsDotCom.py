@@ -1,6 +1,7 @@
 import re
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from selenium.webdriver.common.by import By
 from selenium.webdriver import ActionChains
 from bs4 import BeautifulSoup
 import argparse
@@ -129,24 +130,18 @@ def next_page(car_driver, previous_url):
     :param previous_url: selenium driver
     :return: Return True if program should keep going trough ads or False otherwise
     """
-    print('next page function check')
-    print(f'Previous url: {previous_url}')
     try:
         current_page = int(re.search(r'page=(\d*)&', previous_url).group(1))
-    except ValueError:
+    except AttributeError:
         page_index = previous_url.index('/results/?') + len('/results/?')
         new_url = previous_url[:page_index] + 'page=2&' + previous_url[page_index:]
     else:
         new_page = current_page + 1
         new_url = re.sub(r'page=(\d*)&', f'page={new_page}&', previous_url)
 
-    print(f'new page: {new_page}')
     print(f'new url:{new_url}')
     car_driver.get(new_url)
     car_driver.implicitly_wait(50)
-
-    go_to_ads(car_driver)
-    car_driver.implicitly_wait(10)
 
     return new_url
 
@@ -301,8 +296,16 @@ def get_seller_info(soup):
     """
 
     seller = dict()
-    seller['name'] = soup.find('h3', class_="sds-heading--5 heading seller-name").text
-    seller['address'] = soup.find('div', class_="dealer-address").text
+    try:
+        seller['name'] = soup.find('h3', class_="sds-heading--5 heading seller-name").text
+        seller['address'] = soup.find('div', class_="dealer-address").text
+    except AttributeError:
+        print('Could not fetch seller information')
+        seller['name'] = 'NA'
+        seller['address'] = 'NA'
+        seller['rating'] = 'NA'
+        seller['n_reviews'] = 'NA'
+        return seller
 
     rating_soup = soup.find('section', class_="sds-page-section seller-info")
     try:
@@ -333,7 +336,7 @@ def check_and_close_pop_up(car_driver):
     """
     ad_close_button_style = "position: absolute; top: 0px; left: 0px; width: 27px; height: 26px; overflow: hidden; display: block;"
     try:
-        ad_close_button = driver.findElement(f"By.xpath(//div[@style={ad_close_button_style}]")
+        ad_close_button = car_driver.find_element(By.XPATH, f"//div[@style={ad_close_button_style}]")
     except NoSuchElementException:
         pass
     else:
@@ -346,7 +349,12 @@ def main():
     # car_dbm = Cars_DBM.Cars_DBM()
 
     start_parser()
-    url, max_ads = get_url()
+    # url, max_ads = get_url()
+
+    # url = 'https://www.cars.com/shopping/results/?page=1&page_size=2&dealer_id=&list_price_max=&list_price_min=&makes[]=&maximum_distance=all&mileage_max=&sort=best_match_desc&stock_type=all&year_max=1930&year_min=&zip=10001'
+    # url = 'https://www.cars.com/shopping/results/?page=2&page_size=2&dealer_id=&list_price_max=&list_price_min=&makes[]=&maximum_distance=all&mileage_max=&sort=best_match_desc&stock_type=all&year_max=1930&year_min=&zip=10001'
+    url = 'https://www.cars.com/shopping/results/?dealer_id=&list_price_max=&list_price_min=&makes[]=&maximum_distance=all&mileage_max=&page_size=2&sort=best_match_desc&stock_type=all&year_max=1923&year_min=&zip=10001'
+    max_ads = None
 
     driver = webdriver.Chrome()
     driver.get(url)
@@ -368,13 +376,13 @@ def main():
         my_car = Car_and_Seller.Car(general_info, other_info)
         my_seller = Car_and_Seller.Seller(seller_info)
 
+        cars_looped += 1
         # TODO: delete or change to logging
         print(general_info)
         print(other_info)
         print(car_reviews)
         print(seller_info)
         print(number_of_features)
-        cars_looped += 1
         print(cars_looped)
 
         if max_ads is not None:
@@ -385,12 +393,14 @@ def main():
         ads_remaining = next_ad(driver, cars_looped)
         if not ads_remaining:
             url = next_page(driver, url)
+            check_and_close_pop_up(driver)
             ads_in_page = new_page_check(driver)
             cars_looped = 0
-            if ads_in_page:
-                keep_looping = new_page_check(driver)
-            else:
+            if not ads_in_page:
                 keep_looping = False
+            else:
+                go_to_ads(driver)
+                driver.implicitly_wait(10)
 
     print('The end')
     driver.close()
