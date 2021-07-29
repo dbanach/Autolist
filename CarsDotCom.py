@@ -81,9 +81,15 @@ def go_to_ads(car_driver):
 
 
 def back_to_search_next_ad(car_driver, cars_looped_on_page):
+    """
+    goes back to search page and clicks on next car ad 
+    :param car_driver: selenium driver
+    :param cars_looped_on_page: how many cars were clicked on the current search page 
+    :return: True if there are more cars to loop through, False otherwise 
+    """
     car_driver.back()
     car_driver.implicitly_wait(20)
-    
+
     ads_in_page = car_driver.find_elements_by_class_name("vehicle-card-link")
     if cars_looped_on_page >= len(ads_in_page):
         return False
@@ -133,7 +139,7 @@ def next_page(car_driver, previous_url):
     else:
         new_page = current_page + 1
         new_url = re.sub(r'page=(\d*)&', f'page={new_page}&', previous_url)
-    
+
     print(f'new page: {new_page}')
     print(f'new url:{new_url}')
     car_driver.get(new_url)
@@ -317,6 +323,22 @@ def write_to_db(my_dbm, my_car, my_seller):
     my_dbm.insert_seller_row(my_seller)
     my_dbm.insert_car_type_row(my_car)
     my_dbm.insert_car_row(my_car, my_seller)
+
+
+def check_and_close_pop_up(car_driver):
+    """
+    Checks if pop up ad from cars.com has showed up and closes it if it does
+    :param car_driver: selenium driver
+    :return: None
+    """
+    ad_close_button_style = "position: absolute; top: 0px; left: 0px; width: 27px; height: 26px; overflow: hidden; display: block;"
+    try:
+        ad_close_button = driver.findElement(f"By.xpath(//div[@style={ad_close_button_style}]")
+    except NoSuchElementException:
+        pass
+    else:
+        ActionChains(car_driver).click(ad_close_button).perform()
+        car_driver.implicitly_wait(10)
 
 
 def main():
