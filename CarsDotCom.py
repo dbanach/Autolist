@@ -411,10 +411,12 @@ def check_and_close_pop_up(car_driver):
     try:
         ad_close_button = car_driver.find_element(By.XPATH, f"//div[@style={ad_close_button_style}]")
     except NoSuchElementException:
+        logger.debug('No pop up found on current page')
         pass
     else:
         ActionChains(car_driver).click(ad_close_button).perform()
         car_driver.implicitly_wait(10)
+        logger.debug('Closed pop up')
 
 
 def main():
