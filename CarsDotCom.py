@@ -40,7 +40,7 @@ def start_parser():
     body_choices = ['any', 'cargo_van', 'coupe', 'convertible', 'hatchback', 'minivan', 'passenger_van', 'pickup_truck',
                     'suv', 'sedan', 'wagon']
     radius_choices = ['10', '20', '30', '40', '50', '75', '100', '150', '200', '250', '500', 'any']
-    condition_choices = ['all', 'new', 'new_cpo', 'used', 'cpo']  # TODO: Describe cpo = certified
+    condition_choices = ['all', 'new', 'new_cpo', 'used', 'cpo']
 
     parser = argparse.ArgumentParser(description='Retrieves data from cars.com')
 
@@ -61,12 +61,21 @@ def start_parser():
 
     if args.price_min is not None and args.price_max is not None and args.price_min > args.price_max:
         parser.error('max price must be higher or equal to min price.')
+        logger.info(f'max price must be higher or equal to min price.')
+        logger.error(
+            f'User inputted minimum price higher than maximum price: Min={args.price_min} Max={args.price_max}')
 
     if args.year_min is not None and args.year_max is not None and args.year_min > args.year_max:
         parser.error('max year must be higher or equal to min year.')
+        logger.info('max year must be higher or equal to min year.')
+        logger.error(
+            f'User inputted minimum year higher than maximum year: Min={args.year_min} Max={args.year_max}')
 
     if args.ads_max is not None and args.ads_max < 1:
         parser.error('ads_max must be a positive integer greater than zero.')
+        logger.info('ads_max must be a positive integer greater than zero.')
+        logger.error(
+            f'User inputted an invalid integer as max ads: {args.ads_max}')
 
     return args
 
@@ -77,6 +86,7 @@ def get_url():
     :return: string with url and in with number of ads
     """
     args = start_parser()
+    logger.debug(f'CLI arguments selected: {args}')
 
     body = '' if args.body == 'any' else f'body_style_slugs[]={args.body}'
     condition = '' if args.cond == 'all' else args.cond
@@ -90,6 +100,7 @@ def get_url():
           f'list_price_min={min_price}&makes[]=&maximum_distance={radius}&mileage_max=&page_size=20&' \
           f'sort=best_match_desc&stock_type={condition}&year_max={max_year}&year_min={min_year}&zip=10001'
 
+    logger.debug(f'URL for search: {url}')
     return url, args.ads_max
 
 
@@ -369,7 +380,7 @@ def check_and_close_pop_up(car_driver):
 
 def main():
     """ function that runs the program"""
-    #car_dbm = Cars_DBM()
+    # car_dbm = Cars_DBM()
 
     start_parser()
     url, max_ads = get_url()
