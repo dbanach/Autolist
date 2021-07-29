@@ -97,7 +97,8 @@ def get_url():
     max_year = args.year_max
 
     url = f'https://www.cars.com/shopping/results/?{body}&dealer_id=&list_price_max={max_price}&' \
-          f'list_price_min={min_price}&makes[]=&maximum_distance={radius}&mileage_max=&page_size=20&' \
+          f'list_price_min={min_price}&makes[]=&maximum_distance={radius}&mileage_max=&' \
+          f'page_size={config.NUMBER_OF_ADS_PER_PAGE}&' \
           f'sort=best_match_desc&stock_type={condition}&year_max={max_year}&year_min={min_year}&zip=10001'
 
     logger.debug(f'URL for search: {url}')
@@ -130,15 +131,21 @@ def back_to_search_next_ad(car_driver, cars_looped_on_page):
     """
     car_driver.back()
     car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
+    logger.debug('driver went back to search page')
 
     ads_in_page = car_driver.find_elements_by_class_name("vehicle-card-link")
+    logger.debug(f'Number of ad links found: {ads_in_page}')
+    if ads_in_page != config.NUMBER_OF_ADS_PER_PAGE:
+        logger.warning(f'Number of ad links found in page diverges from expected:'
+                       f' Ads found:{ads_in_page}, Expected: {NUMBER_OF_ADS_PER_PAGE}')
 
-    print(f'ads in page: {len(ads_in_page)}')
     if cars_looped_on_page >= len(ads_in_page):
+        logger.debug('looped through all ads in page, returning False and going to next page ')
         return False
     else:
         ActionChains(car_driver).click(ads_in_page[cars_looped_on_page]).perform()
         car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
+        logger.debug('clicked on next add and returning True')
         return True
 
 

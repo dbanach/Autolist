@@ -6,3 +6,4 @@ DB_PASS = "project"
 CHARSET = "utf8mb4"
 API_URL = "https://car-data.p.rapidapi.com/cars"
 IMPLICIT_WAIT_TIME = 30
+NUMBER_OF_ADS_PER_PAGE = 20
