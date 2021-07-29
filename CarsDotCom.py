@@ -65,7 +65,7 @@ def get_url():
     max_year = args.year_max
 
     url = f'https://www.cars.com/shopping/results/?{body}&dealer_id=&list_price_max={max_price}&' \
-          f'list_price_min={min_price}&makes[]=&maximum_distance={radius}&mileage_max=&page_size=20&' \
+          f'list_price_min={min_price}&makes[]=&maximum_distance={radius}&mileage_max=&page_size=250&' \
           f'sort=best_match_desc&stock_type={condition}&year_max={max_year}&year_min={min_year}&zip=10001'
 
     return url, args.ads_max
