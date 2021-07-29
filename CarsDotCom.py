@@ -209,8 +209,10 @@ def new_page_check(car_driver):
     try:
         no_more_data = car_driver.find_element_by_class_name("sds-heading--4")
     except NoSuchElementException:
+        logger.debug('Page has car ads, returning True')
         return True
     else:
+        logger.debug('Page does not have car ads, returning False')
         return False
 
 
