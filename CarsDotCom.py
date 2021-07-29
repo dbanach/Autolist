@@ -451,8 +451,9 @@ def main():
             seller_info = get_seller_info(car_soup)
             number_of_features = get_number_of_features(car_soup)
             car_reviews = get_car_reviews(car_soup)
-            my_car = Car_and_Seller.Car(general_info, other_info)
-            my_seller = Car_and_Seller.Seller(seller_info)
+
+            car_info = Car_and_Seller.Car(general_info, other_info)
+            seller_info = Car_and_Seller.Seller(seller_info)
 
             cars_looped_current_page += 1
             total_cars_looped += 1
@@ -460,12 +461,7 @@ def main():
             logger.debug(f'Total cars looped:{total_cars_looped}')
 
             if general_info['make'] != 'NA' and general_info['model'] != 'NA':
-                car_dbm.insert_seller_row(my_seller)
-                logger.debug('Inserted new row in seller db')
-                car_dbm.insert_car_type_row(my_car)
-                logger.debug('Inserted new row in car_type db')
-                car_dbm.insert_car_row(my_car, my_seller)
-                logger.debug('Inserted new row in car db')
+                write_to_db(car_dbm, car_info, seller_info)
 
             if max_ads is not None:
                 max_ads -= 1
