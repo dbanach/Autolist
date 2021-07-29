@@ -361,30 +361,34 @@ def main():
 
     keep_looping = True
     cars_looped = 0
+    last_link = None
     while keep_looping:
         driver.implicitly_wait(10)
-        car_soup = get_soup(driver)
-        general_info = get_general_info(car_soup)
-        other_info = get_other_info(car_soup)
-        seller_info = get_seller_info(car_soup)
-        number_of_features = get_number_of_features(car_soup)
-        car_reviews = get_car_reviews(car_soup)
-        my_car = Car_and_Seller.Car(general_info, other_info)
-        my_seller = Car_and_Seller.Seller(seller_info)
 
-        cars_looped += 1
-        # TODO: delete or change to logging
-        print(general_info)
-        print(other_info)
-        print(car_reviews)
-        print(seller_info)
-        print(number_of_features)
-        print(cars_looped)
+        if last_link != driver.current_url:
+            last_link = driver.current_url
+            car_soup = get_soup(driver)
+            general_info = get_general_info(car_soup)
+            other_info = get_other_info(car_soup)
+            seller_info = get_seller_info(car_soup)
+            number_of_features = get_number_of_features(car_soup)
+            car_reviews = get_car_reviews(car_soup)
+            my_car = Car_and_Seller.Car(general_info, other_info)
+            my_seller = Car_and_Seller.Seller(seller_info)
 
-        if max_ads is not None:
-            max_ads -= 1
-            if max_ads == 0:
-                keep_looping = False
+            cars_looped += 1
+            # TODO: delete or change to logging
+            print(general_info)
+            print(other_info)
+            print(car_reviews)
+            print(seller_info)
+            print(number_of_features)
+            print(cars_looped)
+
+            if max_ads is not None:
+                max_ads -= 1
+                if max_ads == 0:
+                    keep_looping = False
 
         ads_remaining = next_ad(driver, cars_looped)
         if not ads_remaining:
