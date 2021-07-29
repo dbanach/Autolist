@@ -273,7 +273,7 @@ def get_number_of_features(soup):
         feature_list.append(feature.text)
 
     n_features = len(all_features)
-
+    logger.debug(f'number of features found: {n_features}')
     return n_features
 
 
