@@ -397,7 +397,7 @@ def main():
                 go_to_ads(driver)
                 driver.implicitly_wait(10)
 
-    print('The end')
+    print('Car ads scrapped successfully')
     driver.close()
 
 
