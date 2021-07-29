@@ -222,7 +222,9 @@ def get_soup(car_driver):
     :param car_driver: selenium driver
     :return: beautiful soup with html
     """
-
+    logger.debug(f'Getting soup for car: {car_driver.current_url}')
+    if 'vehicledetail' not in car_driver.current_url:
+        logger.warning(f'Current page is not a car ad')
     html = car_driver.page_source
     soup = BeautifulSoup(html, 'lxml')
     logger.debug('Beautiful soup for new ad generated')
@@ -245,6 +247,7 @@ def get_general_info(soup):
         basics_dict = json.loads(basics_regex)
     except AttributeError:
         print('Could not fetch general information')
+        logger.info('Could not fetch general information')
         filtered_dict = dict((key, 'NA') for key in filter_keys)
     else:
         for key in filter_keys:
