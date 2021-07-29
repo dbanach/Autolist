@@ -139,7 +139,6 @@ def next_page(car_driver, previous_url):
         new_page = current_page + 1
         new_url = re.sub(r'page=(\d*)&', f'page={new_page}&', previous_url)
 
-    print(f'new url:{new_url}')
     car_driver.get(new_url)
     car_driver.implicitly_wait(50)
 
