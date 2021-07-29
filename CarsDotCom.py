@@ -252,10 +252,10 @@ def get_general_info(soup):
     else:
         for key in filter_keys:
             if key not in basics_dict.keys():
-                logger.info(f'Could not find {key} for car ad, adding NA for it')
+                logger.debug(f'Could not find {key} for car ad, adding NA for it')
                 basics_dict[key] = 'NA'
         filtered_dict = {key: basics_dict[key] for key in filter_keys}
-        
+
     logger.debug(f'general info: {filtered_dict}')
 
     return filtered_dict
@@ -291,18 +291,21 @@ def get_other_info(soup):
         other_info_dict['transmission'] = re.search(r'Transmission.*\s*<dd>*(.*)<\/', str(other_info)).group(1)
     except AttributeError:
         print('Could not fetch transmission information')
+        logger.info('Could not fetch transmission information')
         other_info_dict['transmission'] = 'NA'
 
     try:
         other_info_dict['engine'] = re.search(r'Engine.*\s*<dd>*(.*)<\/', str(other_info)).group(1)
     except AttributeError:
         print('Could not fetch engine information')
+        logger.info('Could not fetch engine information')
         other_info_dict['engine'] = 'NA'
 
     try:
         mpg = other_info.find('span', class_="sds-tooltip").find('span').text.split('–')
     except AttributeError:
         print('Could not fetch mpg information')
+        logger.info('Could not fetch mpg information')
         other_info_dict['mpg_min'] = 'NA'
         other_info_dict['mpg_max'] = 'NA'
     else:
@@ -313,6 +316,8 @@ def get_other_info(soup):
             other_info_dict['mpg_min'] = mpg[0]
             other_info_dict['mpg_max'] = mpg[1]
 
+    logger.debug(f'other info: {other_info_dict}')
+    
     return other_info_dict
 
 
