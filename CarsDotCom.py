@@ -395,10 +395,13 @@ def get_seller_info(soup):
 
 
 def write_to_db(my_dbm, my_car, my_seller):
-    """function that receives a Cars_DBM object and writes with it to the database the information of an add"""
+    """function that receives a Cars_DBM object and writes with it to the database the information of an ad"""
     my_dbm.insert_seller_row(my_seller)
+    logger.debug('Inserted new row in seller db')
     my_dbm.insert_car_type_row(my_car)
+    logger.debug('Inserted new row in car_type db')
     my_dbm.insert_car_row(my_car, my_seller)
+    logger.debug('Inserted new row in car db')
 
 
 def check_and_close_pop_up(car_driver):
