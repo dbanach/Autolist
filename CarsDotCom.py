@@ -186,15 +186,18 @@ def next_page(car_driver, previous_url):
     try:
         current_page = int(re.search(r'page=(\d*)&', previous_url).group(1))
     except AttributeError:
+        logger.debug('Current page not found on url, first page detected')
         page_index = previous_url.index('/results/?') + len('/results/?')
         new_url = previous_url[:page_index] + 'page=2&' + previous_url[page_index:]
     else:
         new_page = current_page + 1
+        logger.debug(f'Current page number: {current_page}. New page: {new_page}')
         new_url = re.sub(r'page=(\d*)&', f'page={new_page}&', previous_url)
 
+    logger.debug(f'New url constructed: {new_url}')
     car_driver.get(new_url)
     car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
-
+    logger.debug('Loaded new url and returning it')
     return new_url
 
 
