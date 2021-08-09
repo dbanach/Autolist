@@ -125,10 +125,10 @@ def go_to_ads(car_driver):
 
 def back_to_search_next_ad(car_driver, cars_looped_on_page):
     """
-    goes back to search page and clicks on next car ad 
+    goes back to search page and clicks on next car ad
     :param car_driver: selenium driver
-    :param cars_looped_on_page: how many cars were clicked on the current search page 
-    :return: True if there are more cars to loop through, False otherwise 
+    :param cars_looped_on_page: how many cars were clicked on the current search page
+    :return: True if there are more cars to loop through, False otherwise
     """
     car_driver.back()
     car_driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
@@ -389,6 +389,8 @@ def get_seller_info(soup):
     except AttributeError:
         print('Seller has no reviews')
         logger.info('Seller has no reviews')
+        seller['rating'] = 'NA'
+        seller['n_reviews'] = 'NA'
     else:
         review_soup = soup.findAll('a', class_="sds-rating__link sds-button-link")
         for review in review_soup:
@@ -433,9 +435,15 @@ def main():
 
     start_parser()
     url, max_ads = get_url()
+    if config.BROWSER == 'Chrome':
+        driver = webdriver.Chrome()
+    elif config.BROWSER == 'Firefox':
+        driver = webdriver.Firefox()
 
-    #driver = webdriver.Chrome()
-    driver = webdriver.Firefox()
+    if config.BROWSER == 'Chrome':
+        driver = webdriver.Chrome()
+    elif config.BROWSER == 'Firefox':
+        driver = webdriver.Firefox()
     driver.get(url)
     driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
 
@@ -454,20 +462,24 @@ def main():
             car_soup = get_soup(driver)
             general_info = get_general_info(car_soup)
             other_info = get_other_info(car_soup)
-            seller_info = get_seller_info(car_soup)
+            seller_info_dict = get_seller_info(car_soup)
+
+
             number_of_features = get_number_of_features(car_soup)
             car_reviews = get_car_reviews(car_soup)
 
             car_info = Car_and_Seller.Car(general_info, other_info)
-            seller_info = Car_and_Seller.Seller(seller_info)
+            seller_info = Car_and_Seller.Seller(seller_info_dict)
 
             cars_looped_current_page += 1
             total_cars_looped += 1
             logger.debug(f'Cars looped on current search page:{cars_looped_current_page}')
             logger.debug(f'Total cars looped:{total_cars_looped}')
 
-            if general_info['make'] != 'NA' and general_info['model'] != 'NA':
+
+            if general_info['make'] != 'NA' and general_info['model'] != 'NA' and seller_info_dict['name'] != 'NA' and seller_info_dict['rating'] !='NA':
                 write_to_db(car_dbm, car_info, seller_info)
+
 
             if max_ads is not None:
                 max_ads -= 1
