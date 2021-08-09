@@ -434,7 +434,8 @@ def main():
     start_parser()
     url, max_ads = get_url()
 
-    driver = webdriver.Chrome()
+    #driver = webdriver.Chrome()
+    driver = webdriver.Firefox()
     driver.get(url)
     driver.implicitly_wait(config.IMPLICIT_WAIT_TIME)
 
