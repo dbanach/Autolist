@@ -260,6 +260,9 @@ def get_general_info(soup):
                 basics_dict[key] = 'NA'
         filtered_dict = {key: basics_dict[key] for key in filter_keys}
 
+    if filtered_dict['price'] is None:
+        filtered_dict['price'] = 0
+
     logger.debug(f'general info: {filtered_dict}')
 
     return filtered_dict
@@ -464,7 +467,6 @@ def main():
             other_info = get_other_info(car_soup)
             seller_info_dict = get_seller_info(car_soup)
 
-
             number_of_features = get_number_of_features(car_soup)
             car_reviews = get_car_reviews(car_soup)
 
@@ -476,10 +478,9 @@ def main():
             logger.debug(f'Cars looped on current search page:{cars_looped_current_page}')
             logger.debug(f'Total cars looped:{total_cars_looped}')
 
-
-            if general_info['make'] != 'NA' and general_info['model'] != 'NA' and seller_info_dict['name'] != 'NA' and seller_info_dict['rating'] !='NA':
+            if general_info['make'] != 'NA' and general_info['model'] != 'NA' and seller_info_dict['name'] != 'NA' \
+                    and seller_info_dict['rating'] != 'NA':
                 write_to_db(car_dbm, car_info, seller_info)
-
 
             if max_ads is not None:
                 max_ads -= 1
